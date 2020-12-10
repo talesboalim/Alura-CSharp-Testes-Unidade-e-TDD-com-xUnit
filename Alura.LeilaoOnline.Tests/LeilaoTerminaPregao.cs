@@ -5,7 +5,37 @@ namespace Alura.LeilaoOnline.Tests
 {
     public class LeilaoTerminaPregao
     {
-        
+        [Theory]
+        [InlineData(1200, 1250, new double[] { 800, 1150, 1400, 1250 })]
+        public void RetornaValorSuperiorMaisProximoDadoLeilaoNessaModalidade(
+        double valorDestino,
+        double valorEsperado,
+        double[] ofertas)
+        {
+            //Arrange - Cenário
+            var leilao = new Leilao("Van Gogh");
+            var fulano = new Interessada("Fulano", leilao);
+            var maria = new Interessada("Maria", leilao);
+
+            for (int i = 0; i < ofertas.Length; i++)
+            {
+                if ((i % 2 == 0))
+                {
+                    leilao.RecebeLance(fulano, ofertas[i]);
+                }
+                else
+                {
+                    leilao.RecebeLance(maria, ofertas[i]);
+                }
+            }
+
+            //Act
+            leilao.TerminaPregao();
+
+            //Assert
+            Assert.Equal(valorEsperado, leilao.Ganhador.Valor);
+        }
+
         [Theory]
         [InlineData (1200, new double[] { 800, 900, 1000, 1200 })]
         [InlineData (1000, new double[] { 800, 900, 1000, 990 })]
@@ -40,10 +70,29 @@ namespace Alura.LeilaoOnline.Tests
 
         }
 
+
         [Fact]
-        public void LeilaoSemLances()
+        public void LancaInvalidOperationExceptionDadopregaoNaoIniciado()
         {
+            //Arrange - cenário
             var leilao = new Leilao("Van Gogh");
+                
+            //Assert
+            var excecaoObtida = Assert.Throws<System.InvalidOperationException>(
+                //Act - método sob teste
+                () => leilao.TerminaPregao()
+            );
+
+            var msgEsperada = "Não é possível terminar o pregão sem que ele tenha começado. Para isso, utilize o método IniciaPregao().";
+            Assert.Equal(msgEsperada, excecaoObtida.Message);
+        }
+
+        [Fact]
+        public void RetornaZeroDadoLeilaoSemLances()
+        {
+            //Arranje - cenário
+            var leilao = new Leilao("Van Gogh");
+            leilao.IniciaPregao();
 
             leilao.TerminaPregao();
 
@@ -52,5 +101,6 @@ namespace Alura.LeilaoOnline.Tests
 
             Assert.Equal(valorEsperado, valorObtido);
         }
+
     }
 }
